@@ -19,8 +19,9 @@ const calculateStatus = useCallback((data) => {
     return acc + 2;
   }, 0);
 
-  if (score > 210) return "critical"; // red
-  if (score >= 150) return "medium"; // yellow
+  // Score thresholds: green <= 200, moderate 201-280, red > 280
+  if (score > 280) return "critical"; // red
+  if (score > 200) return "medium"; // yellow
   return "normal"; // green
 }, []);
 

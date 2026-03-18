@@ -8,7 +8,7 @@ function Footer() {
       <div className="footer__content">
         <div className="footer__left">
           <span>
-            © {year} CyberSentinel • Built for cybersecurity monitoring and threat
+            © {year} CyberSentinel • Built For Cybersecurity Monitoring and Threat
             awareness
           </span>
           <span className="footer__links">
