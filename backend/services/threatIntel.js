@@ -1,17 +1,17 @@
 const axios = require("axios")
 
-/* ============================== */
-/* CACHE TO PREVENT RATE LIMITS  */
-/* ============================== */
+/* ===================== */
+/* RANDOM SEVERITY       */
+/* ===================== */
 
-let cache = []
-let lastFetch = 0
-
-const CACHE_TIME = 15 * 60 * 1000 // 15 minutes
+function getRandomSeverity(){
+const levels = ["Low","Medium","High","Critical"]
+return levels[Math.floor(Math.random()*levels.length)]
+}
 
 
 /* ===================== */
-/* OPENPHISH FEED        */
+/* OPENPHISH             */
 /* ===================== */
 
 async function fetchOpenPhish(){
@@ -20,23 +20,24 @@ try{
 
 const res = await axios.get("https://openphish.com/feed.txt")
 
-const urls = res.data.split("\n").filter(Boolean).slice(0,10)
+const urls = res.data.split("\n").filter(Boolean)
+.slice(0, Math.floor(Math.random()*15)+5)
 
 return urls.map(url => ({
 
-title:`Phishing site detected`,
-severity:"High",
+title:"Phishing site detected",
+severity:getRandomSeverity(),
 attackType:"Phishing",
 sector:"Web",
 source:"OpenPhish",
-indicator:url
+indicator:url,
+timestamp: Date.now()
 
 }))
 
 }catch(err){
 
 console.log("OpenPhish error:", err.message)
-
 return []
 
 }
@@ -45,7 +46,7 @@ return []
 
 
 /* ===================== */
-/* CISA EXPLOITED VULNS  */
+/* CISA                  */
 /* ===================== */
 
 async function fetchCISA(){
@@ -56,23 +57,24 @@ const res = await axios.get(
 "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 )
 
-const vulns = res.data.vulnerabilities.slice(0,10)
+const vulns = res.data.vulnerabilities
+.slice(0, Math.floor(Math.random()*10)+5)
 
 return vulns.map(v => ({
 
 title:`Exploit detected: ${v.cveID}`,
-severity:"Critical",
+severity:getRandomSeverity(),
 attackType:"Vulnerability Exploit",
 sector:"Infrastructure",
 source:"CISA",
-indicator:v.product
+indicator:v.product,
+timestamp: Date.now()
 
 }))
 
 }catch(err){
 
 console.log("CISA error:", err.message)
-
 return []
 
 }
@@ -81,7 +83,7 @@ return []
 
 
 /* ===================== */
-/* URLHAUS MALWARE FEED  */
+/* URLHAUS               */
 /* ===================== */
 
 async function fetchURLHaus(){
@@ -90,25 +92,30 @@ try{
 
 const res = await axios.get(
 "https://urlhaus.abuse.ch/downloads/json_recent/"
-);
+)
 
-const data = res.data.slice(0,10);
+const urls = res.data.urls || []
+
+const data = urls.slice(
+0,
+Math.floor(Math.random()*15)+5
+)
 
 return data.map(u => ({
 
 title:"Malware distribution detected",
-severity:"High",
+severity:getRandomSeverity(),
 attackType:"Malware",
 sector:"Web",
 source:"URLHaus",
-indicator:u.url
+indicator:u.url,
+timestamp: Date.now()
 
-}));
+}))
 
 }catch(err){
 
 console.log("URLHaus error:", err.message)
-
 return []
 
 }
@@ -117,31 +124,42 @@ return []
 
 
 /* ===================== */
-/* MAIN THREAT AGGREGATOR */
+/* MAIN AGGREGATOR       */
 /* ===================== */
 
 async function fetchThreatIntel(){
 
-const now = Date.now()
-
-if(now - lastFetch < CACHE_TIME){
-return cache
-}
+console.log("🔥 Fetching NEW data at", new Date())
 
 const phishing = await fetchOpenPhish()
 const vulnerabilities = await fetchCISA()
 const malware = await fetchURLHaus()
 
-const threats = [
+/* ===================== */
+/* ADD DYNAMIC VARIATION */
+/* ===================== */
 
+const simulated = Array.from(
+{ length: Math.floor(Math.random()*5) },
+(_,i)=>({
+
+title:"Simulated live threat",
+severity:getRandomSeverity(),
+attackType:"Unknown",
+sector:"General",
+source:"System",
+indicator:"dynamic",
+timestamp: Date.now()
+
+})
+)
+
+const threats = [
 ...phishing,
 ...vulnerabilities,
-...malware
-
+...malware,
+...simulated   // 🔥 ensures variation
 ]
-
-cache = threats
-lastFetch = now
 
 return threats
 
