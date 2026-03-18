@@ -3,55 +3,71 @@ import jsPDF from "jspdf"
 
 export const exportDashboardPDF = async () => {
 
-const dashboard = document.querySelector(".dashboard")
+const dashboard = document.querySelector(".dashboard");
 
-if(!dashboard){
-alert("Dashboard not found")
-return
+if (!dashboard) {
+  alert("Dashboard not found");
+  return;
 }
 
-const canvas = await html2canvas(dashboard,{
-scale:2,
-useCORS:true
-})
+// Temporarily expand the dashboard to its full scroll height so html2canvas captures everything
+const originalHeight = dashboard.style.height;
+const originalOverflow = dashboard.style.overflow;
+dashboard.style.height = `${dashboard.scrollHeight}px`;
+dashboard.style.overflow = "visible";
+
+const canvas = await html2canvas(dashboard, {
+  scale: 2,
+  useCORS: true,
+  allowTaint: true,
+  scrollX: -window.scrollX,
+  scrollY: -window.scrollY,
+  windowWidth: document.documentElement.scrollWidth,
+  windowHeight: document.documentElement.scrollHeight,
+});
+
+// Restore styles
+dashboard.style.height = originalHeight;
+dashboard.style.overflow = originalOverflow;
 
 const imgData = canvas.toDataURL("image/png")
 
-const pdf = new jsPDF("p","mm","a4")
+const pdf = new jsPDF("p", "mm", "a4");
+const pageWidth = pdf.internal.pageSize.getWidth();
+const pageHeight = pdf.internal.pageSize.getHeight();
 
-const pageWidth = 210
-const pageHeight = 295
+const imgWidth = pageWidth;
+const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-const imgWidth = pageWidth
-const imgHeight = canvas.height * imgWidth / canvas.width
+const headerOffset = 30;
 
-let heightLeft = imgHeight
-let position = 0
+// Header background highlight
+pdf.setFillColor(230, 230, 230); // light gray
+pdf.rect(0, 5, pageWidth, 25, "F");
 
-// Header
-pdf.setFontSize(18)
-pdf.text("CyberSentinel Cyber Threat Intelligence Report",10,15)
+// Header text
+pdf.setFontSize(18);
+pdf.setTextColor(0, 0, 0);
+pdf.text("CyberSentinel Cyber Threat Intelligence Report", 10, 15);
 
-pdf.setFontSize(10)
-pdf.text(`Generated: ${new Date().toLocaleString()}`,10,22)
+const reportNo = new Date().toISOString().replace(/[:.]/g, "-");
 
-position = 30
+pdf.setFontSize(10);
+pdf.text(`Generated: ${new Date().toLocaleString()}`, 10, 22);
+pdf.text(`Report No: ${reportNo}`, pageWidth - 10, 22, { align: "right" });
 
-pdf.addImage(imgData,"PNG",0,position,imgWidth,imgHeight)
+let position = headerOffset;
+let heightLeft = imgHeight - (pageHeight - headerOffset);
 
-heightLeft -= pageHeight
+pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
 
-while(heightLeft >= 0){
-
-position = heightLeft - imgHeight
-
-pdf.addPage()
-
-pdf.addImage(imgData,"PNG",0,position,imgWidth,imgHeight)
-
-heightLeft -= pageHeight
-
+while (heightLeft > 0) {
+  pdf.addPage();
+  position = heightLeft - imgHeight;
+  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+  heightLeft -= pageHeight;
 }
+
 
 const fileName =
 "CyberSentinel_Report_" +

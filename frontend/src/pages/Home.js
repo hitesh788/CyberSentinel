@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
 import Dashboard from "../components/Dashboard";
+import Footer from "../components/Footer";
 import { getLiveIncidents } from "../api/cyberAPI";
 
 function Home({ toggleTheme, dark }) {
@@ -8,10 +9,9 @@ function Home({ toggleTheme, dark }) {
 const [liveIncidents,setLiveIncidents]=useState([]);
 const [status,setStatus]=useState("normal");
 const [loading,setLoading]=useState(true);
-const [refreshing,setRefreshing]=useState(false);
-const [initialLoaded,setInitialLoaded]=useState(false);
+const firstLoadRef = useRef(true);
 
-const calculateStatus = (data) => {
+const calculateStatus = useCallback((data) => {
   const score = data.reduce((acc, i) => {
     if (i.severity === "Critical") return acc + 20;
     if (i.severity === "High") return acc + 10;
@@ -22,13 +22,11 @@ const calculateStatus = (data) => {
   if (score > 210) return "critical"; // red
   if (score >= 150) return "medium"; // yellow
   return "normal"; // green
-};
+}, []);
 
-const loadData = async () => {
-  if (!initialLoaded) {
+const loadData = useCallback(async () => {
+  if (firstLoadRef.current) {
     setLoading(true);
-  } else {
-    setRefreshing(true);
   }
 
   try {
@@ -41,41 +39,40 @@ const loadData = async () => {
     console.log(e);
   }
 
-  if (!initialLoaded) {
+  if (firstLoadRef.current) {
     setLoading(false);
-    setInitialLoaded(true);
-  } else {
-    setRefreshing(false);
+    firstLoadRef.current = false;
   }
-};
+}, [calculateStatus]);
 
-useEffect(()=>{
+useEffect(() => {
+  loadData();
 
-loadData()
+  const interval = setInterval(() => {
+    loadData();
+  }, 30000);
 
-const interval=setInterval(()=>{
-loadData()
-},30000)
-
-return ()=>clearInterval(interval)
-
-},[])
+  return () => clearInterval(interval);
+}, [loadData]);
 
 return(
 
 <div>
 
 {/* ✅ Pass theme props */}
-<Navbar toggleTheme={toggleTheme} dark={dark} status={status} refreshing={refreshing}/>
+<Navbar toggleTheme={toggleTheme} dark={dark} status={status} />
 
-{loading ? (
-  <div className="loader-container">
-    <div className="cyber-loader"></div>
-    <p>Loading Cyber Incident Feed...</p>
-  </div>
-) : (
-  <Dashboard incidents={[]} liveIncidents={liveIncidents} />
-)}
+  {loading ? (
+    <div className="loader-container">
+      <div className="cyber-loader"></div>
+      <p>Loading Cyber Incident Feed...</p>
+    </div>
+  ) : (
+    <>
+      <Dashboard incidents={[]} liveIncidents={liveIncidents} />
+      <Footer />
+    </>
+  )}
 
 </div>
 

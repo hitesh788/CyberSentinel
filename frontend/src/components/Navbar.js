@@ -1,7 +1,8 @@
 import React from "react";
 import { exportDashboardPDF } from "../utils/exportPDF";
+import logo from "../utils/main-logo.png";
 
-function Navbar({ toggleTheme, dark, status, refreshing }) {
+function Navbar({ toggleTheme, dark, status }) {
 
 const getStatusClass = () => {
 if(status === "critical") return "status-red";
@@ -13,7 +14,7 @@ return(
 
 <div className="navbar">
 
-<h2>CyberSentinel</h2>
+<img src={logo} alt="CyberSentinel" draggable="false" className="navbar-logo" />
 
 <div style={{display:"flex", alignItems:"center"}}>
 
@@ -24,7 +25,6 @@ return(
     {status === "critical" ? "Critical" :
      status === "medium" ? "Moderate" : "Normal"}
   </span>
-  {refreshing ? <span className="refreshing-text">Refreshing…</span> : null}
 </div>
 
 <button className="theme-btn" onClick={toggleTheme}>

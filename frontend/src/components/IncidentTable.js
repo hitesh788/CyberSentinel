@@ -4,9 +4,17 @@ function IncidentTable({incidents}){
 
 const [search,setSearch]=useState("")
 
-const filtered = incidents.filter(i =>
-i.title.toLowerCase().includes(search.toLowerCase())
-)
+const filtered = incidents.filter(i => {
+  const term = search.toLowerCase();
+  if (!term) return true;
+  return (
+    (i.title || "").toLowerCase().includes(term) ||
+    (i.attackType || "").toLowerCase().includes(term) ||
+    (i.source || "").toLowerCase().includes(term) ||
+    (i.sector || "").toLowerCase().includes(term) ||
+    (i.severity || "").toLowerCase().includes(term)
+  );
+});
 
 const getSeverityClass=(severity)=>{
 
