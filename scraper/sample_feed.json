@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Fake UPI phishing links circulating",
+    "source": "Python Demo Feed",
+    "severity": "High",
+    "sector": "Banking",
+    "attackType": "Phishing",
+    "description": "UPI users targeted through fake reward and KYC links.",
+    "location": "India",
+    "date": "2026-03-15 18:04:32.137851"
+  },
+  {
+    "title": "Botnet traffic observed on exposed endpoints",
+    "source": "Python Demo Feed",
+    "severity": "Medium",
+    "sector": "Telecom",
+    "attackType": "Botnet",
+    "description": "Suspicious traffic pattern indicates automated botnet scanning.",
+    "location": "India",
+    "date": "2026-03-15 18:04:32.138059"
+  }
+]
